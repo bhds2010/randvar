@@ -117,7 +117,7 @@ This often returns `The following package(s) are in an inconsistent state:` with
 
 ## Install project packages
 
-I know this because in `REACT` you do this using `npm i` to install all environment or `package.json` packages and so I use the same logic here. T
+I know this because in `REACT` you do this using `npm i` to install all environment or `package.json` packages and so I use the same logic here. 
 
 This is what i used:
 

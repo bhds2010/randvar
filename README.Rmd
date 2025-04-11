@@ -7,11 +7,11 @@ date: "2025-04-07"
 # randvar
 Randvar Shiny app designed to learn random variables and their distributions
 
-YOU MUST READ THE README.md FILE
+YOU MUST READ THE README.md or README.Rmd FILE
 
 ## Making a repo from CLI
 
-Skip this. This is for me.
+SKIP this. This is for me.
 
 ```bash
 curl -u Alphaprime7 https://api.github.com/orgs/bhds2010/repos -d '{"name":"NAME_OF_REPO", "description":"SOME_DESCRIPTION", "private": true, "has_issues": true, "has_projects": true, "has_wiki":false }'
@@ -125,7 +125,7 @@ This often returns `The following package(s) are in an inconsistent state:` with
 
 ## Install project packages
 
-I know this because in `REACT` you do this using `npm i` to install all environment or `package.json` packages and so I use the same logic here. T
+I know this because in `REACT` you do this using `npm i` to install all environment or `package.json` packages and so I use the same logic here. 
 
 This is what i used:
 
