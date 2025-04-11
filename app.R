@@ -3,5 +3,5 @@
 #Run the application 
 source("ui.R")
 source("server.R")
-shinyApp(ui = ui, server = server)
+shiny::shinyApp(ui = ui, server = server)
 
