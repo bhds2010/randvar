@@ -199,6 +199,11 @@ server <- function(input, output, session) {
         }
         
       }
+       else if (input$randvalue == "exponential") {
+         if(input$pdforcdf == "PDF") {
+           #nothing happens here
+         }
+       }
       else {
         helpText("Select a distribution to see the equation. You need JESUS!")
       }
