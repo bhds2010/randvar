@@ -42,7 +42,7 @@ server <- function(input, output, session) {
       if (input$randvalue == "Binomial") {
         if(input$pdforcdf == "PDF") {
           withMathJax(
-            div(style="font-size: 20px; font-weight: bold; ",
+            div(style="font-size: 20px; font-weight: bold; background-color: blue; ",
                 tags$b(helpText("For a binomial distribution:")) ), 
             helpText("$$P(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}, \\space n \\le 170$$"),
             helpText("$$E(X) = np, \\space n \\le 170$$"),
