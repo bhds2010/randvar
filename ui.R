@@ -7,6 +7,18 @@ ui <- fluidPage(
   
   titlePanel("RandVar"),
   
+  ##e6ffe6
+  shiny::tags$head(
+    shiny::tags$style(shiny::HTML("
+        body {
+            background-color: none;
+        }
+        .container-fluid {
+            background-color: none;
+        }
+    "))
+  ),
+  
   #Sidebar with a slider input for number of bins 
   sidebarLayout(
     #input sidebar panel elements

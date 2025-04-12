@@ -174,4 +174,8 @@ rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"
 ```{r}
 rsconnect::deployApp('C:/Users/Education&School/Documents/BrownBHDS/BHDS2010-Statistical Programming/week11_04022025/randvar')
 ```
+## Cards in Shiny
 
+The next step in shiny development.
+
+[Cards](https://rstudio.github.io/bslib/articles/cards/)

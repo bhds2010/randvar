@@ -1,4 +1,5 @@
 library(shiny)
+library(bslib)
 library(ggplot2)
 library(plotly)
 source("functions.R")
@@ -12,7 +13,7 @@ server <- function(input, output, session) {
                       choices = if (input$randvariable == "discrete") {
                         c("Binomial", "Geometric", "Negative Binomial", "HyperGeometric", "Poisson")
                       } else {
-                        c("Uniform", "Normal", "Exponential")
+                        c("Uniform", "Normal")
                       })
   })
   
@@ -42,7 +43,7 @@ server <- function(input, output, session) {
       if (input$randvalue == "Binomial") {
         if(input$pdforcdf == "PDF") {
           withMathJax(
-            div(style="font-size: 20px; font-weight: bold; background-color: blue; ",
+            div(style="font-size: 20px; font-weight: bold; ",
                 tags$b(helpText("For a binomial distribution:")) ), 
             helpText("$$P(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}, \\space n \\le 170$$"),
             helpText("$$E(X) = np, \\space n \\le 170$$"),
@@ -222,6 +223,17 @@ server <- function(input, output, session) {
     req(input$randvalue)
     if (input$randvalue == "Binomial") {
       div(
+        # card(
+        #   full_screen = FALSE,
+        #   class = "bg-primary text-white border-primary mb-4 rounded",
+        #   
+        #   card_header(class = "bg-dark text-white", "What is this nonsense"),
+        #   
+        #   card_body(
+        #     p("Card 1 body"),
+        #     textInput("text", "Add text", "")
+        #   )
+        # ),
         div(style = "font-size: 20px; color: red; font-weight: 2rem", "Binomial Distribution Settings for a Bernoulli Random Variable"),
         div(
           style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
