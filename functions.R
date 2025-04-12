@@ -102,8 +102,55 @@ uniformdistro <- function(k, a, b) {
 #single value function for geometric function
 # Function to compute the probability for a Normal Distribution
 # Define the normal distribution function
+
+getRnorm <- function(n, mean=NULL, sd=NULL) {
+  
+  if(is.null(mean) || mean == 0) {
+    mean = 0
+  }
+  else {
+    mean=mean
+  }
+  
+  if(is.null(sd) || sd == 1) {
+    sd = 1
+  }
+  else {
+    sd = sd
+  }
+  
+  rnormalDistro <- rnorm(n, mean=mean, sd=sd)
+  rnormalDistro
+  
+}
+
 adeckNormal <- function(k, mean, sd) {
-  dnorm(k, mean = mean, sd = sd)
+  set.seed(100)
+  fx <- ( 1/( sd*sqrt(2*pi) ) )*(exp( (-(k-mean)^2)/(2*(sd^2)) ))
+  fx
+}
+
+adeckreverseNormal <- function(k, mean, sd) {
+  set.seed(100)
+  fx <- ( 1/( sd*sqrt(2*pi) ) )*(exp( ((mean-k)^2)/(2*(sd^2)) ))
+  fx
+}
+
+adecknormDistro <- function(xdf, norm_reverse = FALSE) {
+  m <- mean(xdf)
+  sdev <- sd(xdf)
+  fx <- c()
+  if (isFALSE(norm_reverse)) {
+    fx <- adeckNormal(xdf, m, sdev)
+  }
+  else {
+    fx <- adeckreverseNormal(xdf, m, sdev)
+  }
+  rfx <- dnorm(xdf, m, sdev)
+  df <- cbind(xdf, fx, rfx)
+  df <- as.data.frame(df)
+  names(df) <- c("k", "prob", "rprob")
+  df
 }
 
 # erf <- function(x) {

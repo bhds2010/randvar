@@ -35,7 +35,7 @@ server <- function(input, output, session) {
       if (input$randvalue == "Binomial") {
         if(input$pdforcdf == "PDF") {
           withMathJax(
-            div(style="font-size: 20px; font-weight: bold",
+            div(style="font-size: 20px; font-weight: bold; ",
                 tags$b(helpText("For a binomial distribution:")) ), 
             helpText("$$P(X = k) = \\binom{n}{k} p^k (1-p)^{n-k}, \\space n \\le 170$$"),
             helpText("$$E(X) = np, \\space n \\le 170$$"),
@@ -186,12 +186,12 @@ server <- function(input, output, session) {
         }
         else {
           withMathJax(
-            div(style="font-size: 20px; font-weight: bold",
+            div(style="font-size: 15px; font-weight: bold",
                 tags$b(helpText("For a Normal or Gaussian distribution:")) ),
             helpText("$$erf(z) = \\frac{2}{\\sqrt{\\pi}}\\int_0^{z}e^{-t^2}dt$$"),
             helpText("$$erf(z) = \\frac{2}{\\sqrt{\\pi}}\\sum_0^{\\infty}\\frac{-1^nz^{2n+1}}{n!(2n+1)}$$"),
             helpText("$$erf(z) = 1 - \\frac{1}{(1+0.3275911z)^4}e^{-z^2}$$"),
-            helpText(HTML('<span style="font-size: 10px;">$$erf(z) = 1 - \\frac{1}{(1+0.278393z+0.230389z^2+0.000972z^3+0.078108z^4)^4}$$</span>')),
+            helpText(HTML('<span style="font-size: 8px;">$$erf(z) = 1 - \\frac{1}{(1+0.278393z+0.230389z^2+0.000972z^3+0.078108z^4)^4}$$</span>')),
             helpText("$$F(x) = \\Phi = \\frac{1}{2}[1 + erf(\\frac{(x-\\mu)}{\\sigma\\sqrt{2}})]$$"),
             strong(tags$i(helpText("Reference: Rice, John A. (2007). Mathematical statistics and data analysis (3rd ed.). Duxbury Press.")))
           )
@@ -274,6 +274,17 @@ server <- function(input, output, session) {
           selectInput("adeckUnifA", label = withMathJax(strong("$$a \\space (\\text{Lower Limit})$$")), choices = c(seq(-100,100)), selected = 0, width = "33%"),
           selectInput("adeckUnifB", label = withMathJax("$$b \\space ( \\text{Upper Limit})$$"), choices = c(seq(-100,100)), selected = 1, width = "33%"),
           selectInput("UnifsampleSpace", label = withMathJax("$$Sample \\space Space \\space (x_i)$$"), choices = c(seq(0,500)), selected = 100, width = "33%")
+        )
+      )
+    }
+    else if (input$randvalue == "Normal"){
+      div (
+        div(style = "font-size: 20px; color: blue; font-weight: 2rem", "Normal Distribution Settings"),
+        div(
+          style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
+          selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500)), selected = 0, width = "100%"),
+          selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10)), selected = 0, width = "100%"),
+          selectInput("kaitySigma", label = withMathJax(strong("$$\\sigma$$")), choices = c(seq(0,10)), selected = 1, width = "100%"),
         )
       )
     }
@@ -468,7 +479,7 @@ server <- function(input, output, session) {
         x <- seq(from = as.numeric(input$adeckUnifA), to = as.numeric(input$adeckUnifB), by = as.numeric(input$unifstepsize))
         
         UnifdistroPDF <- uniformdistro(x, as.numeric(input$adeckUnifA), as.numeric(input$adeckUnifB) )
-        print(UnifdistroPDF)
+        #print(UnifdistroPDF)
         
         ggplotly(ggplot(UnifdistroPDF, aes(x = k, y = prob)) +
                    geom_bar(stat = "identity", fill = "gray") +
@@ -496,6 +507,44 @@ server <- function(input, output, session) {
       }
       
     }
+    
+    else if (input$randvalue == "Normal") {
+      if (input$pdforcdf == "PDF") {
+        req(input$kaitySampleSpace)
+        req(input$kaityMu)
+        req(input$kaitySigma)
+        
+        x <- getRnorm(input$kaitySampleSpace, as.numeric(input$kaityMu), as.numeric(input$kaitySigma) )
+        normalDistroPDF <- adecknormDistro(x)
+        print(normalDistroPDF)
+        ggplotly(ggplot(normalDistroPDF, aes(x = k, y = prob)) +
+                   geom_bar(stat = "identity", fill = "gray") +
+                   geom_line() +
+                   labs(title = paste("Normal PDF mean=",input$kaityMu, "stdev=", input$kaitySigma),
+                        x = "x",
+                        y = "Probability f(x)") +
+                   theme_minimal())
+          
+      }
+      else {
+        req(input$kaitySampleSpace)
+        req(input$kaityMu)
+        req(input$kaitySigma)
+        
+        x <- getRnorm(input$kaitySampleSpace, as.numeric(input$kaityMu), as.numeric(input$kaitySigma) )
+        normalDistroPDF <- adecknormDistro(x, norm_reverse=TRUE)
+        print(normalDistroPDF)
+        ggplotly(ggplot(normalDistroPDF, aes(x = k, y = prob)) +
+                   geom_bar(stat = "identity", fill = "gray") +
+                   geom_line() +
+                   labs(title = paste("Normal CDF mean=",input$kaityMu, "stdev=", input$kaitySigma),
+                        x = "x",
+                        y = "Probability f(x)") +
+                   theme_minimal())
+      }
+      
+    }
+  
     
   })
 }
