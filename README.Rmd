@@ -165,6 +165,13 @@ shiny::runApp("app.R")
 TBC 
 
 ```{r}
-#library(rsconnect)
+library(rsconnect)
+```
+```{r}
+rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"), secret='HNF6m4BTSny+677FoO1SR72CEQSw2+DgxYQIK3Yz')
+```
+
+```{r}
+rsconnect::deployApp('C:/Users/Education&School/Documents/BrownBHDS/BHDS2010-Statistical Programming/week11_04022025/randvar')
 ```
 
