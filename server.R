@@ -18,7 +18,14 @@ server <- function(input, output, session) {
   
   #Observe distribution child type
   observeEvent(input$randvalue, {
-    updateSelectInput( session, "pdforcdf", choices = c("PDF", "CDF") ) })
+    if (input$randvalue != "Normal") {
+      updateSelectInput( session, "pdforcdf", choices = c("PDF", "CDF") )
+    }
+    else {
+      updateSelectInput( session, "pdforcdf", choices = c("PDF", "CDF", "P-Curve") )
+    }
+     
+    })
   
   #Uniform slider UI
   output$dynamicUI <- renderUI({
@@ -177,10 +184,10 @@ server <- function(input, output, session) {
             helpText("$$
               f(x) = \\phi = \\frac{1}{\\sigma \\sqrt{2\\pi}}e^{\\frac{-(x-\\mu)^2}{2\\sigma^2}}$$"),
             helpText("$$E[X] = \\mu$$"),
-            helpText("$$SEM = \\frac{\\sigma}{\\sqrt{n}}$$"),
-            helpText("$$Z = \\frac{\\overline{x}-\\mu}{SEM}$$"),
-            helpText("$$Z = \\frac{X-\\mu}{\\sigma}$$"),
-            helpText("$$CI = \\overline{x} \\pm z\\frac{\\sigma}{\\sqrt{n}}$$"),
+            #helpText("$$SEM = \\frac{\\sigma}{\\sqrt{n}}$$"),
+            #helpText("$$Z = \\frac{\\overline{x}-\\mu}{SEM}$$"),
+            #helpText("$$Z = \\frac{X-\\mu}{\\sigma}$$"),
+            #helpText("$$CI = \\overline{x} \\pm z\\frac{\\sigma}{\\sqrt{n}}$$"),
             strong(tags$i(helpText("Reference: Rice, John A. (2007). Mathematical statistics and data analysis (3rd ed.). Duxbury Press.")))
           )
         }
@@ -190,8 +197,8 @@ server <- function(input, output, session) {
                 tags$b(helpText("For a Normal or Gaussian distribution:")) ),
             helpText("$$erf(z) = \\frac{2}{\\sqrt{\\pi}}\\int_0^{z}e^{-t^2}dt$$"),
             helpText("$$erf(z) = \\frac{2}{\\sqrt{\\pi}}\\sum_0^{\\infty}\\frac{-1^nz^{2n+1}}{n!(2n+1)}$$"),
-            helpText("$$erf(z) = 1 - \\frac{1}{(1+0.3275911z)^4}e^{-z^2}$$"),
-            helpText(HTML('<span style="font-size: 8px;">$$erf(z) = 1 - \\frac{1}{(1+0.278393z+0.230389z^2+0.000972z^3+0.078108z^4)^4}$$</span>')),
+            #helpText("$$erf(z) = 1 - \\frac{1}{(1+0.3275911z)^4}e^{-z^2}$$"),
+            #helpText(HTML('<span style="font-size: 8px;">$$erf(z) = 1 - \\frac{1}{(1+0.278393z+0.230389z^2+0.000972z^3+0.078108z^4)^4}$$</span>')),
             helpText("$$F(x) = \\Phi = \\frac{1}{2}[1 + erf(\\frac{(x-\\mu)}{\\sigma\\sqrt{2}})]$$"),
             strong(tags$i(helpText("Reference: Rice, John A. (2007). Mathematical statistics and data analysis (3rd ed.). Duxbury Press.")))
           )
@@ -282,9 +289,9 @@ server <- function(input, output, session) {
         div(style = "font-size: 20px; color: blue; font-weight: 2rem", "Normal Distribution Settings"),
         div(
           style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
-          selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500)), selected = 0, width = "100%"),
-          selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10)), selected = 0, width = "100%"),
-          selectInput("kaitySigma", label = withMathJax(strong("$$\\sigma$$")), choices = c(seq(0,10)), selected = 1, width = "100%"),
+          selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500, by=1)), selected = 0, width = "100%"),
+          selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10, by=1)), selected = 0, width = "100%"),
+          selectInput("kaitySigma", label = withMathJax(strong("$$\\sigma$$")), choices = c(seq(0,10, by=1)), selected = 1, width = "100%"),
         )
       )
     }
@@ -516,6 +523,7 @@ server <- function(input, output, session) {
         
         x <- getRnorm(input$kaitySampleSpace, as.numeric(input$kaityMu), as.numeric(input$kaitySigma) )
         normalDistroPDF <- adecknormDistro(x)
+        #normalDistroPDF <- adecknormDistro(x, norm_reverse=TRUE)
         print(normalDistroPDF)
         ggplotly(ggplot(normalDistroPDF, aes(x = k, y = prob)) +
                    geom_bar(stat = "identity", fill = "gray") +
@@ -526,20 +534,36 @@ server <- function(input, output, session) {
                    theme_minimal())
           
       }
-      else {
+      else if (input$pdforcdf == "CDF"){
         req(input$kaitySampleSpace)
         req(input$kaityMu)
         req(input$kaitySigma)
         
         x <- getRnorm(input$kaitySampleSpace, as.numeric(input$kaityMu), as.numeric(input$kaitySigma) )
-        normalDistroPDF <- adecknormDistro(x, norm_reverse=TRUE)
-        print(normalDistroPDF)
-        ggplotly(ggplot(normalDistroPDF, aes(x = k, y = prob)) +
+        normalDistroCDF <- adecknormDistro(x)
+        print(normalDistroCDF)
+        ggplotly(ggplot(normalDistroCDF, aes(x = k, y = cum_prob)) +
                    geom_bar(stat = "identity", fill = "gray") +
                    geom_line() +
                    labs(title = paste("Normal CDF mean=",input$kaityMu, "stdev=", input$kaitySigma),
                         x = "x",
-                        y = "Probability f(x)") +
+                        y = "Cumulative Probability F(x)") +
+                   theme_minimal())
+      }
+      else if (input$pdforcdf == "P-Curve") {
+        req(input$kaitySampleSpace)
+        req(input$kaityMu)
+        req(input$kaitySigma)
+        
+        x <- getRnorm(input$kaitySampleSpace, as.numeric(input$kaityMu), as.numeric(input$kaitySigma) )
+        normalDistroCDF <- adecknormDistro(x)
+        print(normalDistroCDF)
+        ggplotly(ggplot(normalDistroCDF, aes(x = z, y = pval)) +
+                   geom_bar(stat = "identity", fill = "gray") +
+                   geom_line() +
+                   labs(title = paste("Normal Probability Curve mean=",input$kaityMu, "stdev=", input$kaitySigma),
+                        x = "z",
+                        y = "P-value (p)") +
                    theme_minimal())
       }
       

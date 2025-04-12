@@ -136,10 +136,58 @@ adeckreverseNormal <- function(k, mean, sd) {
   fx
 }
 
-adecknormDistro <- function(xdf, norm_reverse = FALSE) {
+# Error function integral produces far off values
+erf <- function(x) {
+  integral <- integrate(function(t) exp(-t^2), lower = 0, upper = x)$value
+  (2 / sqrt(pi)) * integral
+}
+
+adecknormDistro <- function(xdf, norm_reverse = FALSE, p.val=FALSE) {
+  
+  #harts approximation for z <=0
+  hart_phi_approximation <- function(q, mean = 0, sd = 1, log.p=FALSE, p.val=FALSE) {
+    #can get the p-val using p.val or simply supplying q as the abs as done in the scale up.
+    if (p.val) {
+      q <- -abs(q)
+    }
+    else {
+      q <- q
+    }
+    
+    # Standardize q
+    z <- (q - mean) / sd
+    #if (z >= 6) return(Inf )
+    #if (z < -6) return(-Inf )
+    
+    #Otherwise approximate here
+    #no need for extreme z checks, the formula takes care of it.
+    b0 <- 0.2316419
+    b1 <- 0.319381530
+    b2 <- -0.356563782
+    b3 <- 1.781477937
+    b4 <- -1.821255978
+    b5 <- 1.330274429
+    
+    #Compute approximation for values <= 0
+    t <- 1 / (1 + b0 * abs(z))
+    poly <- ((((b5 * t + b4) * t + b3) * t + b2) * t + b1) * t
+    phi <- (1 / sqrt(2 * pi)) * exp(-0.5 * z^2) #can also approximate from phi (PDF)
+    
+    #Compute cumulative probability
+    #handles all negative to 0 values based on the formula i suppose
+    # z>0 values = 1 - phi
+    Phi <- ifelse( z >= 0  , 1 - phi * poly, phi * poly)
+    
+    if (log.p) Phi <- log(Phi)
+    return(Phi)
+  }
+  
+  xdf <- sort(xdf, decreasing=F)
   m <- mean(xdf)
   sdev <- sd(xdf)
+  z <- (xdf-m)/(sdev/sqrt(2)) #z_1 <- (xdf-m)/(sdev*sqrt(2))
   fx <- c()
+  Fx <- c()
   if (isFALSE(norm_reverse)) {
     fx <- adeckNormal(xdf, m, sdev)
   }
@@ -147,130 +195,19 @@ adecknormDistro <- function(xdf, norm_reverse = FALSE) {
     fx <- adeckreverseNormal(xdf, m, sdev)
   }
   rfx <- dnorm(xdf, m, sdev)
-  df <- cbind(xdf, fx, rfx)
+  Fx <- hart_phi_approximation(z, p.val = p.val)
+  rFx <- pnorm(z)
+  #pval <- hart_phi_approximation(-abs(z))
+  pval <- sapply(z, function(z_val) hart_phi_approximation(-abs(z_val)) )
+  rpval <- ifelse(z <= 0, pnorm(z), 1- pnorm(z))
+  df <- cbind(xdf, z, fx, rfx, Fx, rFx, pval, rpval)
   df <- as.data.frame(df)
-  names(df) <- c("k", "prob", "rprob")
+  names(df) <- c("k", "z", "prob", "rprob", "cum_prob", "rcum_prob", "pval", "rpval")
   df
 }
 
-# erf <- function(x) {
-#   integral <- integrate(function(t) exp(-t^2), lower = 0, upper = x)$value
-#   (2 / sqrt(pi)) * integral
-# }
-# 
-# # Example usage
-# erf(0.707)  # Should return approximately 0.6827
-# 
-# erf_taylor <- function(x, n_terms = 10) {
-#   sum <- 0
-#   for (n in 0:(n_terms-1)) {
-#     sum <- sum + ((-1)^n * x^(2*n + 1)) / (factorial(n) * (2*n + 1))
-#   }
-#   (2 / sqrt(pi)) * sum
-# }
-# 
-# # Example usage
-# erf_taylor(0.707)  # Should return approximately 0.6827
-# 
-# erf_approx <- function(x) {
-#   1 - 1 / (1 + 0.278393 * x + 0.230389 * x^2 + 0.000972 * x^3 + 0.078108 * x^4)^4
-# }
-# 
-# # Example usage
-# erf_approx(0.707)  # Should return approximately 0.6827
-# 
-# x <- 0.707
-# c(Numerical = erf(x), Taylor = erf_taylor(x, 10), Approximation = erf_approx(x))
-# 
-# 
-# 
-# # Apply the normal function to an array or vector of values
-# Gaussiandistro <- function(k, mean, sd) {
-#   prob <- sapply(k, function(k_val) adeckNormal(k_val, mean, sd))
-#   cum_prob <- cumsum(prob) / sum(prob)  # Normalize cumulative probability
-#   NormalDistro <- cbind(k, prob, cum_prob)
-#   data.frame(NormalDistro)
-# }
 
-# p_value_PRO <- function(mu,sigma,x) {
-#   p <- (1/(sigma*sqrt(2*pi)))*( exp( (-(x-mu)^2)/(2*sigma^2) ) )
-#   p
-# }
-# p_value_PRO <- p_value_PRO(140, 25,130)
-# p_value_PRO
-# 
-# erfz <- function(z) {
-#   erfz <- 1 - (( 1/( (1+0.3275911*z)^4 ))* ( exp(-z^2) ))
-#   erfz
-# }
-# ez <- erfz(z)
 
-#CDF-Harts approximation
-# my_pnorm_hart <- function(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE) {
-#   # Standardize q
-#   z <- (q - mean) / sd
-#   if (z > 6) return(ifelse(log.p, 0, 1)) # Handle extreme cases
-#   if (z < -6) return(ifelse(log.p, -Inf, 0))
-#   
-#   # Constants from Hart's approximation
-#   b0 <- 0.2316419
-#   b1 <- 0.319381530
-#   b2 <- -0.356563782
-#   b3 <- 1.781477937
-#   b4 <- -1.821255978
-#   b5 <- 1.330274429
-#   
-#   # Compute approximation
-#   t <- 1 / (1 + b0 * abs(z))
-#   poly <- ((((b5 * t + b4) * t + b3) * t + b2) * t + b1) * t
-#   phi <- (1 / sqrt(2 * pi)) * exp(-0.5 * z^2)
-#   
-#   # Compute cumulative probability
-#   Phi <- ifelse(z >= 0, 1 - phi * poly, phi * poly)
-#   
-#   # Handle lower tail and log options
-#   if (!lower.tail) Phi <- 1 - Phi
-#   if (log.p) Phi <- log(Phi)
-#   
-#   return(Phi)
-# }
-# 
-# # Testing with your example
-# z <- (130 - 140) / (25 / sqrt(200))
-# p_value_R <- 2 * pnorm(-abs(z))   # R's built-in pnorm
-# p_value_my <- 2 * my_pnorm_hart(-abs(z))  # My Hart's approximation
-# 
-# cat("R's p-value:", p_value_R, "\n")
-# cat("My p-value:", p_value_my, "\n")
-# 
-# #CDF-Abraham's approximation
-# my_pnorm <- function(q, mean = 0, sd = 1, lower.tail = TRUE, log.p = FALSE) {
-#   # Standardize q
-#   z <- (q - mean) / sd
-#   
-#   # Constants for Abramowitz & Stegun approximation
-#   a <- c(0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429)
-#   p <- 0.3275911
-#   
-#   # Compute absolute z
-#   sign_z <- ifelse(z < 0, -1, 1)
-#   z_abs <- abs(z) / sqrt(2)
-#   
-#   # Compute error function approximation (Abramowitz & Stegun 7.1.26)
-#   t <- 1 / (1 + p * z_abs)
-#   erf_approx <- 1 - (((((a[5] * t + a[4]) * t) + a[3]) * t + a[2]) * t + a[1]) * t * exp(-z_abs^2)
-#   
-#   # Compute Phi(z)
-#   phi_z <- 0.5 * (1 + sign_z * erf_approx)
-#   
-#   # Handle tail cases
-#   if (!lower.tail) phi_z <- 1 - phi_z
-#   if (log.p) phi_z <- log(phi_z)
-#   
-#   return(phi_z)
-# }
-# 
-# # Test cases
-# my_pnorm(-abs(z)) 
+
 
 
