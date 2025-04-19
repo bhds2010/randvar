@@ -175,6 +175,7 @@ rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"
 ```{r}
 rsconnect::deployApp(Sys.getenv("APP_URL"))
 ```
+
 ## Cards in Shiny
 
 The next step in shiny development.
