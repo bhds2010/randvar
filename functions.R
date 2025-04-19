@@ -33,7 +33,8 @@ adeckgeom <- function(k, p) {
 #apply the geometric function to an array or vector of values
 geomdistro <- function(k, p) {
   prob <- sapply(k, function(k_val) adeckgeom(k_val, p))
-  geomdistro <- cbind(k,prob)
+  cum_prob <- cumsum(prob)
+  geomdistro <- cbind(k,prob, cum_prob)
   data.frame(geomdistro)
 }
 
@@ -205,6 +206,10 @@ adecknormDistro <- function(xdf, norm_reverse = FALSE, p.val=FALSE) {
   names(df) <- c("k", "z", "prob", "rprob", "cum_prob", "rcum_prob", "pval", "rpval")
   df
 }
+
+#---------------- EXPONENTIAL DENSITY -------------------------
+
+
 
 
 

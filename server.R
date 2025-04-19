@@ -301,7 +301,7 @@ server <- function(input, output, session) {
         div(style = "font-size: 20px; color: blue; font-weight: 2rem", "Normal Distribution Settings"),
         div(
           style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
-          selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500, by=1)), selected = 0, width = "100%"),
+          selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500, by=1)), selected = 50, width = "100%"),
           selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10, by=1)), selected = 0, width = "100%"),
           selectInput("kaitySigma", label = withMathJax(strong("$$\\sigma$$")), choices = c(seq(0,10, by=1)), selected = 1, width = "100%"),
         )
@@ -364,11 +364,28 @@ server <- function(input, output, session) {
                    theme_minimal())
       }
       else {
-        p <- ggplot() +
-          annotate("text", x = 1, y = 1, label = "You need JESUS FOR NOW! Cumulative Distribution Function Coming Soon! ", size = 5, fontface = "bold") +
-          theme_void()  # Removes all axis, grids, etc.
+        req(input$geomsampleSpace)
+        req(input$geomprob)
+        if (as.numeric(input$geomsampleSpace) < 10) {
+          x <- seq(from = 1, to = input$geomsampleSpace, by = 0.1)
+        }
+        else {
+          x <- seq(from = 1, to = input$geomsampleSpace, by = 1)
+        }
         
-        ggplotly(p)
+        geomdistroPDF <- geomdistro(x, as.numeric(input$geomprob) )
+        ggplotly(ggplot(geomdistroPDF, aes(x = k, y = cum_prob)) +
+                   geom_line() +
+                   geom_point() +
+                   labs(title = paste("Geometric Cumulative Distribution p=",input$geomprob, "n=", input$geomsampleSpace),
+                        x = "x",
+                        y = "Probability P(X = k)") +
+                   theme_minimal())
+        # p <- ggplot() +
+        #   annotate("text", x = 1, y = 1, label = "You need JESUS FOR NOW! Cumulative Distribution Function Coming Soon! ", size = 5, fontface = "bold") +
+        #   theme_void()  # Removes all axis, grids, etc.
+        # 
+        # ggplotly(p)
       }
       
     }

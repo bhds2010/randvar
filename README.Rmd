@@ -167,8 +167,9 @@ TBC
 ```{r}
 library(rsconnect)
 ```
+
 ```{r}
-rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"), secret='HNF6m4BTSny+677FoO1SR72CEQSw2+DgxYQIK3Yz')
+rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"), secret=Sys.getenv("RSCONNECT_SECRET") )
 ```
 
 ```{r}
