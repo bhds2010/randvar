@@ -163,6 +163,10 @@ TBC
   <img src="https://contributors-img.web.app/image?repo=bhds2010/randvar" width = 50/>
 </a>
 
+<a href="https://github.com/kaitytrinidad">
+  <img src="https://github.com/kaitytrinidad.png" width="50" />
+</a>
+
 
 
 
