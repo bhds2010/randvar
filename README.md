@@ -157,6 +157,12 @@ TBC
 #library(rsconnect)
 ```
 
+## 🤝🏿 Contributors
+
+<a href="https://github.com/bhds2010/randvar/graphs/contributors">
+  <img src="https://contributors-img.web.app/image?repo=bhds2010/randvar" width = 50/>
+</a>
+
 
 
 
