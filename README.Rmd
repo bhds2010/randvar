@@ -44,6 +44,13 @@ gh_randvar_key <- Sys.getenv('BHDS2010_RANDVAR_REPO_TOKEN')
 ## First Set credentials
 
 ```{r}
+#gitcreds::gitcreds_get()
+#usethis::create_github_token()
+#git_sitrep()
+#Sys.setenv(GITHUB_PAT = gitcreds::gitcreds_get(use_cache = FALSE)$password)
+```
+
+```{r}
 install.packages("gitcreds")
 library(gitcreds)
 gitcreds_set()
