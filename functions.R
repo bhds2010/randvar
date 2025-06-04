@@ -209,6 +209,74 @@ adecknormDistro <- function(xdf, norm_reverse = FALSE, p.val=FALSE) {
 
 #---------------- EXPONENTIAL DENSITY -------------------------
 
+#COMING SOON
+
+
+#---------------- MULTIVARIATE NORMAL DENSITY -------------------------
+
+testMvCISim <- function(beta = 20, n, m, mean, sd, z) {
+  library(MASS)
+  x = 1:n
+  countV <- c()
+  ciV <- c()
+  sum <- 0
+  for (i in 1:m) {
+    D <- outer(x, x, FUN = "-")
+    S <- sd * exp(-abs(D) / beta) #beta = decay param; large = more dependence and vice versa so smaller is good
+    y <- mvrnorm(1, rep(mean,n), Sigma = S)
+    cil <- mean(y) - (z*(sd/sqrt(n)))
+    ciu <- mean(y) + (z*(sd/sqrt(n)))
+    ciV <- c(cil, ciu)
+    if (mean < cil || mean > ciu) {
+      countV <- c(countV, TRUE)
+      sum <- sum + 1
+    }
+  }
+  print(sum)
+  return(length(countV))
+}
+
+#evolved to being comfortable using R's functions
+#MVN is a joint distribution of two variables. Its a distribution class of its own!
+adeckMVN <- function(n ,numMeans, sd, beta=20, KMeans = FALSE, mean = NULL, Sigma=NULL) {
+  set.seed(100)
+  #we'll require this in the app because that vector matches the number of sub-comps
+  D <- outer(1:numMeans, 1:numMeans, FUN = "-") #a matrix with nxn dimensions for the number of variables in the joint distribution
+  if (!is.null(beta)) {
+    Sigma <- sd * exp(-abs(D) / beta) #add noise, modify the covariance matrix
+  }
+  else {
+    Sigma <- sd * exp(-abs(D))
+  }
+  
+  #handle means
+  mu <- c()
+  if (KMeans) {
+    mean <- ifelse(is.null(mean), 0, 1)
+    mu <- rep(mean, numMeans)
+  }
+  else {
+    mu <- runif(numMeans, 1,10)
+  }
+  
+  #get the mvn variables
+  k <- MASS::mvrnorm(n, mu=mu, Sigma = Sigma)
+  k <- as.data.frame(k)
+  
+  #name columns
+  knames <- c()
+  for (i in 1:ncol(k)) {
+    name <- paste("MVN", i, sep="_")
+    knames <- c(knames,name )
+  }
+  
+  colnames(k) <- knames
+  k
+  
+}
+
+
+
 
 
 

@@ -2,10 +2,14 @@ library(shiny)
 library(bslib)
 library(ggplot2)
 library(plotly)
+library(MASS)
 source("functions.R")
 
 #Define server logic required to draw a histogram
 server <- function(input, output, session) {
+  
+  #define mnv as reactive
+  #mvnDF <- reactiveValues(data = NULL)
   
   #Observe random variable parent type
   observeEvent(input$randvariable, {
@@ -13,7 +17,7 @@ server <- function(input, output, session) {
                       choices = if (input$randvariable == "discrete") {
                         c("Binomial", "Geometric", "Negative Binomial", "HyperGeometric", "Poisson")
                       } else {
-                        c("Uniform", "Normal")
+                        c("Uniform", "Normal", "MultiVariate Normal")
                       })
   })
   
@@ -33,6 +37,20 @@ server <- function(input, output, session) {
     req(input$randvalue)
     if (input$randvalue == "Uniform" ) {
       sliderInput("unifstepsize", "Uniform Distribution step size:", min = 0, max = 1, value = 0.1)
+    }
+    
+    else if (input$randvalue == "MultiVariate Normal" ) {
+      div(
+        radioButtons("meanTypes", 
+                     "Constant or Random Means", 
+                     choices = c(
+          "Constant" = "constant",
+          "Random" = "random"
+        )),
+        sliderInput("mvnbeta", "MVN beta:", min = 0, max = 100, value = 1),
+        selectInput("MVNY", "Select Y", choices = NULL, multiple = F),
+        selectInput("MVNX", "Select X", choices = NULL, multiple = F)
+      )
     }
   })
   
@@ -212,6 +230,35 @@ server <- function(input, output, session) {
            #nothing happens here
          }
        }
+       else if (input$randvalue == "MultiVariate Normal") {
+        if(input$pdforcdf == "PDF") {
+          withMathJax(
+            div(style="font-size: 20px; font-weight: bold; ",
+                tags$b(helpText("For a MultiVariate Normal distribution:")) ), 
+            div(style="font-size:7.5px;",
+                helpText("$$f_X(x) = \\frac{1}{(2\\pi)^{k/2}|\\Sigma|^{1/2}} \\exp\\left(-\\frac{1}{2}(x - \\mu)^T\\Sigma^{-1}(x - \\mu)\\right)$$")),
+            helpText("$$\\mu = (\\mu_i,\\mu_j,\\mu_k...\\mu_n)$$"),
+            helpText(
+              "$$\\Sigma = \\begin{bmatrix}",
+              "\\sigma_i^2 & \\rho\\sigma_i\\sigma_j & \\rho\\sigma_i\\sigma_k \\\\",
+              "\\rho\\sigma_i\\sigma_j & \\sigma_j^2 & \\rho\\sigma_j\\sigma_k \\\\", 
+              "\\rho\\sigma_i\\sigma_k & \\rho\\sigma_j\\sigma_k & \\sigma_k^2",
+              "\\end{bmatrix}$$"
+            ),
+            strong(tags$i(helpText("Reference: Rice, John A. (2007). Mathematical statistics and data analysis (3rd ed.). Duxbury Press.")))
+          )
+        }
+        else {
+          withMathJax(
+            div(style="font-size: 20px; font-weight: bold",
+                tags$b(helpText("For a Multivariate Normal distribution:")) ), 
+            helpText("$$F_X(x) = P(X_i \\leq x_i, X_j \\leq x_j, X_k \\leq x_k, X_n \\leq x_n$$"),
+            helpText("$$X=(X_i,X_j,X_k....,X_n)^T$$"),
+            strong(tags$i(helpText("Reference: Rice, John A. (2007). Mathematical statistics and data analysis (3rd ed.). Duxbury Press.")))
+          )
+        }
+        
+      }
       else {
         helpText("Select a distribution to see the equation. You need JESUS!")
       }
@@ -290,9 +337,9 @@ server <- function(input, output, session) {
         div(style = "font-size: 20px; color: blue; font-weight: 2rem", "Uniform Distribution Settings"),
         div(
           style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
-          selectInput("adeckUnifA", label = withMathJax(strong("$$a \\space (\\text{Lower Limit})$$")), choices = c(seq(-100,100)), selected = 0, width = "33%"),
-          selectInput("adeckUnifB", label = withMathJax("$$b \\space ( \\text{Upper Limit})$$"), choices = c(seq(-100,100)), selected = 1, width = "33%"),
-          selectInput("UnifsampleSpace", label = withMathJax("$$Sample \\space Space \\space (x_i)$$"), choices = c(seq(0,500)), selected = 100, width = "33%")
+          selectInput("adeckUnifA", label = withMathJax(strong("$$a \\space (\\text{Lower Limit})$$")), choices = c(seq(-100,100, by=1)), selected = 0, width = "33%"),
+          selectInput("adeckUnifB", label = withMathJax("$$b \\space ( \\text{Upper Limit})$$"), choices = c(seq(-100,100, by=1)), selected = 1, width = "33%"),
+          selectInput("UnifsampleSpace", label = withMathJax("$$Sample \\space Space \\space (x_i)$$"), choices = c(seq(0,500, by=1)), selected = 100, width = "33%")
         )
       )
     }
@@ -302,8 +349,20 @@ server <- function(input, output, session) {
         div(
           style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
           selectInput("kaitySampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = c(seq(2,500, by=1)), selected = 50, width = "100%"),
-          selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10, by=1)), selected = 0, width = "100%"),
+          selectInput("kaityMu", label = withMathJax(strong("$$\\mu$$")), choices = c(seq(0,10, by=1)), selected = 1, width = "100%"),
           selectInput("kaitySigma", label = withMathJax(strong("$$\\sigma$$")), choices = c(seq(0,10, by=1)), selected = 1, width = "100%"),
+        )
+      )
+    }
+    else if (input$randvalue == "MultiVariate Normal"){
+      div (
+        div(style = "font-size: 20px; color: blue; font-weight: 2rem", "MultiVariate Normal Distribution Settings"),
+        div(
+          style = "display: flex; flex-direction: row; align-items: center; gap: 100px;",
+          selectInput("mvnSampleSpace", label = withMathJax(strong("$$\\Omega$$")), choices = seq(1,500, by=1), selected = 100, width = "100%"),
+          selectInput("mvnkMu", label = withMathJax(strong("$$\\mu \\space (K Means)$$")), choices = seq(0,10, by=1), selected = 1, width = "100%"),
+          selectInput("mvnMuVectorLength", label = withMathJax(strong("$$\\begin{pmatrix}\\mu_i & \\mu_j & \\mu_k\\end{pmatrix}$$")), choices = c(seq(0,10, by=1)), selected = 2, width = "100%"),
+          selectInput("mvnsigma", label = withMathJax(strong("$$\\sigma$$")), choices = seq(0,10, by=1), selected = 1, width = "100%"),
         )
       )
     }
@@ -594,6 +653,61 @@ server <- function(input, output, session) {
                         x = "z",
                         y = "P-value (p)") +
                    theme_minimal())
+      }
+      
+    }
+    
+    else if (input$randvalue == "MultiVariate Normal") {
+      
+      if (input$pdforcdf == "PDF") {
+        req(input$mvnSampleSpace)
+        req(input$mvnkMu)
+        req(input$mvnMuVectorLength)
+        req(input$mvnsigma)
+        req(input$mvnbeta)
+        
+        mvnDF <- adeckMVN(as.numeric(input$mvnSampleSpace), 
+                      as.numeric(input$mvnMuVectorLength), 
+                      as.numeric(input$mvnsigma),
+                      beta=as.numeric(input$mvnbeta)
+                      )
+        print(mvnDF)
+        
+        observe({
+          req(mvnDF)
+          updateSelectInput(session, "MVNX", choices = colnames(mvnDF))
+          updateSelectInput(session, "MVNY", choices = colnames(mvnDF))
+        })
+
+        req(input$MVNX)
+        req(input$MVNX)
+        
+        if(ncol(mvnDF) == 2) {
+          ggplotly(ggplot(mvnDF, aes(x = MVN_1, y = MVN_2)) +
+                     geom_point(alpha=.2) +
+                     geom_density_2d() +
+                     labs(title = paste("Normal PDF mean=",input$kaityMu, "stdev=", input$kaitySigma),
+                          x = "X",
+                          y = "Y") +
+                     theme_bw())
+        }
+        
+      }
+      else if (input$pdforcdf == "CDF"){
+        data <- data.frame(
+          Act = c("Help a friend", "Give a gift", 
+                  "Listen to someone", 
+                  "Offer a compliment", 
+                  "Share food"),
+          Frequency = c(10, 5, 8, 6, 9)
+        )
+        
+        # Create a bar chart of the frequency of different acts of love
+        ggplot(data, aes(x = Act, y = Frequency)) +
+          geom_bar(stat = "identity", fill = "lightblue") +
+          ggtitle("Frequency of Acts of Love") +
+          xlab("Act of Love") +
+          ylab("Frequency")
       }
       
     }

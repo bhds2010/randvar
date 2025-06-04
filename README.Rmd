@@ -5,6 +5,7 @@ date: "2025-04-07"
 ---
 
 # randvar
+
 Randvar Shiny app designed to learn random variables and their distributions
 
 YOU MUST READ THE README.md or README.Rmd FILE
