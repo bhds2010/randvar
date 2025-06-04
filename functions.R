@@ -243,16 +243,16 @@ adeckMVN <- function(n ,numMeans, sd, beta=20, KMeans = FALSE, mean = NULL, Sigm
   #we'll require this in the app because that vector matches the number of sub-comps
   D <- outer(1:numMeans, 1:numMeans, FUN = "-") #a matrix with nxn dimensions for the number of variables in the joint distribution
   if (!is.null(beta)) {
-    Sigma <- sd * exp(-abs(D) / beta) #add noise, modify the covariance matrix
+    Sigma <- sd * exp(-abs(D) / beta) #add noise, modify the covariance matrix (low= -->independent; high=--->dependent)
   }
   else {
     Sigma <- sd * exp(-abs(D))
   }
   
   #handle means
-  mu <- c()
-  if (KMeans) {
-    mean <- ifelse(is.null(mean), 0, 1)
+  mu <- as.numeric()
+  if (isTRUE(KMeans)) {
+    mean <- ifelse(is.null(mean), 0, mean)
     mu <- rep(mean, numMeans)
   }
   else {

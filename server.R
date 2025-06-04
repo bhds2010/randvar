@@ -10,6 +10,7 @@ server <- function(input, output, session) {
   
   #define mnv as reactive
   #mvnDF <- reactiveValues(data = NULL)
+  mvnDF <- reactiveVal()
   
   #Observe random variable parent type
   observeEvent(input$randvariable, {
@@ -44,10 +45,10 @@ server <- function(input, output, session) {
         radioButtons("meanTypes", 
                      "Constant or Random Means", 
                      choices = c(
-          "Constant" = "constant",
-          "Random" = "random"
-        )),
-        sliderInput("mvnbeta", "MVN beta:", min = 0, max = 100, value = 1),
+                       "Random" = "random",
+                       "Constant" = "constant"
+                       )),
+        sliderInput("mvnbeta", "MVN beta:", min = 1, max = 100, value = 1),
         selectInput("MVNY", "Select Y", choices = NULL, multiple = F),
         selectInput("MVNX", "Select X", choices = NULL, multiple = F)
       )
@@ -661,36 +662,60 @@ server <- function(input, output, session) {
       
       if (input$pdforcdf == "PDF") {
         req(input$mvnSampleSpace)
+        req(input$meanTypes)
         req(input$mvnkMu)
         req(input$mvnMuVectorLength)
         req(input$mvnsigma)
         req(input$mvnbeta)
         
-        mvnDF <- adeckMVN(as.numeric(input$mvnSampleSpace), 
-                      as.numeric(input$mvnMuVectorLength), 
-                      as.numeric(input$mvnsigma),
-                      beta=as.numeric(input$mvnbeta)
-                      )
-        print(mvnDF)
+        if(input$meanTypes == "random") {
+          mvnDF(adeckMVN(
+            as.numeric(input$mvnSampleSpace), 
+            as.numeric(input$mvnMuVectorLength), 
+            as.numeric(input$mvnsigma),
+            beta = as.numeric(input$mvnbeta)
+          ))
+        }
+        else{
+          mvnDF(adeckMVN(
+            as.numeric(input$mvnSampleSpace), 
+            as.numeric(input$mvnMuVectorLength), 
+            as.numeric(input$mvnsigma),
+            beta = as.numeric(input$mvnbeta),
+            KMeans = TRUE,
+            mean = as.numeric(input$mvnkMu)
+          ))
+        }
         
-        observe({
-          req(mvnDF)
-          updateSelectInput(session, "MVNX", choices = colnames(mvnDF))
-          updateSelectInput(session, "MVNY", choices = colnames(mvnDF))
+        print(mvnDF())
+        
+        observeEvent(mvnDF(), {
+          df <- mvnDF()
+          req(df)
+          cols <- colnames(df)
+          
+          isolate({
+            updateSelectInput(session, "MVNX", choices = cols,
+                              selected = if (is.null(input$MVNX) || !(input$MVNX %in% cols)) cols[1] else input$MVNX
+            )
+            updateSelectInput(session, "MVNY", choices = cols,
+                              selected = if (is.null(input$MVNY) || !(input$MVNY %in% cols)) cols[2] else input$MVNY
+            )
+          })
         })
-
-        req(input$MVNX)
+        
+        req(mvnDF())
+        df <- mvnDF()
+        req(input$MVNY)
         req(input$MVNX)
         
-        if(ncol(mvnDF) == 2) {
-          ggplotly(ggplot(mvnDF, aes(x = MVN_1, y = MVN_2)) +
+          ggplotly(ggplot(df, aes(x = .data[[input$MVNX]], y = .data[[input$MVNY]])) +
                      geom_point(alpha=.2) +
                      geom_density_2d() +
-                     labs(title = paste("Normal PDF mean=",input$kaityMu, "stdev=", input$kaitySigma),
-                          x = "X",
-                          y = "Y") +
+                     labs(title = paste("mean X=", mean(df[[input$MVNX]]), "mean Y=", mean(df[[input$MVNY]])),
+                          x = input$MVNX,
+                          y = input$MVNY) +
                      theme_bw())
-        }
         
       }
       else if (input$pdforcdf == "CDF"){
@@ -702,7 +727,6 @@ server <- function(input, output, session) {
           Frequency = c(10, 5, 8, 6, 9)
         )
         
-        # Create a bar chart of the frequency of different acts of love
         ggplot(data, aes(x = Act, y = Frequency)) +
           geom_bar(stat = "identity", fill = "lightblue") +
           ggtitle("Frequency of Acts of Love") +
