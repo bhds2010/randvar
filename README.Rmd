@@ -173,6 +173,10 @@ shiny::runApp("app.R")
 TBC 
 
 ```{r}
+usethis::edit_r_environ(scope = "project")
+```
+
+```{r}
 library(rsconnect)
 ```
 
@@ -181,7 +185,7 @@ rsconnect::setAccountInfo(name='alphaprime7', token=Sys.getenv("RSCONNECT_TOKEN"
 ```
 
 ```{r}
-rsconnect::deployApp(Sys.getenv("APP_URL"))
+rsconnect::deployApp(Sys.getenv("APP_URL") )
 ```
 
 ## Cards in Shiny
